@@ -16,13 +16,11 @@ namespace BOARMMO
     {
         Socket client = null;
         private string ip = "127.0.0.1";
-        private int port = 6666;
+        private int port = 1234;
 
         public Form1()
         {
             InitializeComponent();
-            client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            client.Connect(ip, port);
         }
 
         private void bLogin_Click(object sender, EventArgs e)
@@ -57,13 +55,24 @@ namespace BOARMMO
 
         private void sendData(string data)
         {
+            client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            client.Connect(ip, port);
             byte[] protocoledData = Encoding.ASCII.GetBytes(data);
             client.Send(protocoledData);
+            awaitAnswer();
         }
 
         private void awaitAnswer()
         {
-
+            byte[] buffer = new byte[128];
+            int size = client.Receive(buffer);
+            client.Close();
+            string  answerData = Encoding.ASCII.GetString(buffer);
+            string answer = answerData.Split(':')[1];
+            if (answer[0] == '1')
+            {
+                this.Close();
+            }
         }
 
 
