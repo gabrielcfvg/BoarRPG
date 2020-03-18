@@ -2,14 +2,13 @@ import socket
 import threading
 
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(("127.0.0.1", 1234))
-sock.listen(5)
 
 class Funções_de_Protocolos:
 
     @staticmethod
-    def login(mensagem, conexão):
+    def login(mensagem, endereço):
 
         valores = mensagem.split("|")
         
@@ -19,35 +18,39 @@ class Funções_de_Protocolos:
 
         del valores
 
-        if usuario == senha:
+        print("a")
 
-            conexão.send(bytes("1:1", "utf-8"))
+        print(endereço)
+
+        if usuario == senha:
+            temp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM).sendto(b"1:1", endereço)
 
         else:
-            conexão.send(bytes("1:0", "utf-8"))
+            temp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM).sendto(b"1:0", endereço)
+
 
 enumeração_de_funções = {1: Funções_de_Protocolos.login}
 
-def Parser(conexão, endereço):
+def Parser(data, endereço):
 
-    try:
+    
 
-        pacote = conexão.recv(2048).decode("utf-8")
-        
-        
+    pacote = data.decode("utf-8")
+    
 
-        protocolo = int(pacote.split(":")[0])
-        mensagem = pacote.split(":")[1]
-        enumeração_de_funções[protocolo](mensagem, conexão)
+    protocolo = int(pacote.split(":")[0])
+    mensagem = pacote.split(":")[1]
+    enumeração_de_funções[protocolo](mensagem, endereço)
 
-    except ConnectionResetError as error:
-        print(error)
+
 
 print("------------")
 print("server ativo")
 print("------------\n\n")
 
+
 while True:
+    
+    data, endereço = sock.recvfrom(2048)
     print("S")
-    conexão, endereço = sock.accept()
-    threading.Thread(target=Parser, args=[conexão, endereço]).start()
+    threading.Thread(target=Parser, args=[data, endereço]).start()
