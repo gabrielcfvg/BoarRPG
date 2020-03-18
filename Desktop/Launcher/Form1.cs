@@ -14,13 +14,14 @@ namespace BOARMMO
 {
     public partial class Form1 : Form
     {
-        Socket client = null;
+        UdpClient client = null;
         private string ip = "127.0.0.1";
         private int port = 1234;
 
         public Form1()
         {
             InitializeComponent();
+            client = new UdpClient(1222);
         }
 
         private void bLogin_Click(object sender, EventArgs e)
@@ -55,26 +56,23 @@ namespace BOARMMO
 
         private void sendData(string data)
         {
-            client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            client.Connect(ip, port);
+
             byte[] protocoledData = Encoding.ASCII.GetBytes(data);
-            client.Send(protocoledData);
+            client.Send(protocoledData, protocoledData.Length,"127.0.0.1",1234);
             awaitAnswer();
         }
 
         private void awaitAnswer()
         {
-            byte[] buffer = new byte[128];
-            int size = client.Receive(buffer);
-            client.Close();
-            string  answerData = Encoding.ASCII.GetString(buffer);
-            string answer = answerData.Split(':')[1];
+            IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, port);
+            Byte[] receiveBytes = client.Receive(ref RemoteIpEndPoint);
+            string answer = Encoding.ASCII.GetString(receiveBytes).Split(':')[1];
+            lAnswer.Text = answer;
             if (answer[0] == '1')
             {
                 this.Close();
             }
         }
-
 
     }
 }
