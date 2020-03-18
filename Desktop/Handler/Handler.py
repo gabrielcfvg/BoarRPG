@@ -1,5 +1,9 @@
 import socket
 import threading
+import requests
+
+LINK = "http://127.0.0.1:5000/"
+#LINK = "https://testeflask--gabrielcl.repl.co/"
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -18,18 +22,28 @@ class Funções_de_Protocolos:
 
         del valores
 
-        print("a")
+        senha_server = str(requests.get(f"{LINK}1:{usuario}").text).strip()
+        
+        print(senha, senha_server)
+        print(len(senha), len(senha_server))
 
-        print(endereço)
 
-        if usuario == senha:
-            temp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM).sendto(b"1:1", endereço)
+        if senha_server == senha:
+            socket.socket(socket.AF_INET, socket.SOCK_DGRAM).sendto(b"1:1", endereço)
+            print("A")
 
         else:
-            temp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM).sendto(b"1:0", endereço)
+            socket.socket(socket.AF_INET, socket.SOCK_DGRAM).sendto(b"1:0", endereço)
+
+    @staticmethod
+    def checar_vida(mensagem, endereço):
+
+        vida = str(requests.get(f"{LINK}2:None").text).strip()
+        socket.socket(socket.AF_INET, socket.SOCK_DGRAM).sendto(bytes(f"2:{vida}", 'utf-8'), endereço)
 
 
-enumeração_de_funções = {1: Funções_de_Protocolos.login}
+
+enumeração_de_funções = {1: Funções_de_Protocolos.login, 2: Funções_de_Protocolos.checar_vida}
 
 def Parser(data, endereço):
 
