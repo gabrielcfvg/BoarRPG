@@ -1,0 +1,38 @@
+Observação: Todos as comunicações entre servidor e cliente, tanto no envio quanto na resposta, devem seguir a formatação padrão.
+
+
+Formatação dos pacotes{
+
+    1: Todas os pacotes devem possuir um protocolo numérico no início, separado do resto por um ":"(dois pontos).
+    2: Todos os dados em um pacote devem ser separados por "|"(barra vertical).
+    3: Todas os pacotes devem terminar com "."(ponto final), para se adequar ao funcionamento do TCP.
+}
+
+Protocolos:
+
+    __0__ = Login e Cadastro{
+
+        1: O pacote de envio do protocolo __0__ contém 3 dados: a operação a ser feita(login ou cadastro), o nome do usuário e a senha.
+            PADRÂO: "0:{modo}|{nome}|{senha}."
+            EXEMPLO: "0:0|maria|1234."
+
+        2: O pacote de resposta contém 2 dados: a operação realizada e o resultado.
+            PADRÂO: "0:{modo}|{resposta}."
+            EXEMPLO: "0:0|0."
+
+        Significado das respostas{
+            
+            Login{
+                0: Login bem sucedido.
+                1: Senha incorreta.
+                2: Usuário não existente
+            }
+
+            Cadastro{
+                0: Cadastro bem sucedido.
+                1: Usuário já existente.
+            }
+        }
+
+
+    }
