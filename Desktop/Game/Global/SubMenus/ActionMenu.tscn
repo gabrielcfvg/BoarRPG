@@ -1,0 +1,26 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://Global/SubMenus/ActionMenu.gd" type="Script" id=1]
+
+[node name="ActionMenu" type="Node2D"]
+script = ExtResource( 1 )
+
+[node name="HBOX" type="VBoxContainer" parent="."]
+margin_right = 64.0
+margin_bottom = 68.0
+rect_min_size = Vector2( 64, 20 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Move" type="Button" parent="HBOX"]
+margin_right = 64.0
+margin_bottom = 20.0
+text = "Move"
+
+[node name="Button2" type="Button" parent="HBOX"]
+margin_top = 24.0
+margin_right = 64.0
+margin_bottom = 44.0
+text = "Inspect"
+[connection signal="pressed" from="HBOX/Move" to="." method="_on_Move_pressed"]
