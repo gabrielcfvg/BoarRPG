@@ -1,7 +1,7 @@
 import sqlite3
+import os
 
-arquivo = r'D:\projetos\BoarRPG\database.db'
-
+arquivo = os.getcwd()+r'\database.db'
 def sqlite(func):
 
 	def operação(**kwargs):
