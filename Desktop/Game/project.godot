@@ -15,13 +15,18 @@ _global_script_class_icons={
 
 [application]
 
-config/name="Game"
-run/main_scene="res://Scenario/World Map.tscn"
+config/name="BoarRPG"
+run/main_scene="res://Global/Login/Login.tscn"
 config/icon="res://icon.png"
 
 [autoload]
 
 Con="*res://Global/Socket/socket.gd"
+Global="*res://Global/Global.gd"
+
+[debug]
+
+settings/fps/force_fps=60
 
 [display]
 

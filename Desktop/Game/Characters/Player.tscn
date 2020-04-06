@@ -12,3 +12,7 @@ script = ExtResource( 2 )
 
 [node name="Control" parent="." instance=ExtResource( 3 )]
 visible = false
+
+[node name="Camera2D" type="Camera2D" parent="."]
+current = true
+smoothing_enabled = true

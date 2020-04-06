@@ -6,12 +6,22 @@ var RedTile = "res://Scenario/Tiles/RedTile.tscn"
 
 var character = preload("res://Characters/Enemy.tscn")
 var players = []
-const CELL_SIZE = 256
-
+const CELL_SIZE = 64
 
 func _ready():
-	Con.world = self
-	Con._request_map()
+	if !Global.start:
+		Con.world = self
+		Con._request_map()
+		Global.start = true
+	else:
+		print("req")
+		Con.world = self
+		Con._request_map(Global.chunk_position)
+
+func change_chunk(side):
+	Global.chunk_position+= side
+	get_tree().reload_current_scene()
+	
 
 func _gen_map(size,tiles):
 	###gera um array bidimensional de dimensões size representando o mapa
@@ -70,7 +80,7 @@ func add_player(name,pos):
 	add_child(np)
 	np.name = name
 	np.get_node("Label").text = name
-	np.modulate = Color(randi()%255)
+	#np.modulate = Color(randi()%255)
 	var pos_index = Vector2(int(pos[0]),int(pos[1]))
 	np.global_position = pos_index*Vector2(CELL_SIZE,CELL_SIZE) + Vector2(CELL_SIZE/2,CELL_SIZE/2)
 

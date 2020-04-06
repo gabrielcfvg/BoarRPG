@@ -1,21 +1,26 @@
 extends Node
 export var port:int = 1234
 var thread
-var world
+var world = null
 var boar = null
 var AuthMenu
 
 
-var nick
+
+func _ready():
+	OS.low_processor_usage_mode = true
+
+###FUNÇÕES DE CONEXÃO###
 
 func _connect_to_server(data):
 	var ip= data[0]
-	nick = data[1]
+	Global.nick = data[1]
 	var pas = data[2]
-	var login = data[3]
+	var code = data[3]
 	boar = StreamPeerTCP.new()
 	if boar.connect_to_host(ip,port) != 0:
 		print("Connection error")
+		AuthMenu.Message.text =  ("Connection error")
 		return
 	for i in range(1000):
 		OS.delay_msec(1)
@@ -25,12 +30,12 @@ func _connect_to_server(data):
 		print("Connection error")
 		AuthMenu.Message.text =  ("Connection error")
 		return
-	#print(boar.get_status())
-	print("connected to server")
-	if login == "0|":
-		login(nick,pas)
-	elif login == "1|":
-		register(nick,pas)
+	AuthMenu.Message.text = ("Connected game to server")
+	print("Connected game to server")
+	if code == "0|":
+		login(Global.nick,pas)
+	elif code == "1|":
+		register(Global.nick,pas)
 	
 
 func login(nick,pas):
@@ -49,18 +54,27 @@ func register(nick,pas):
 	thread.start(self, "_listen_server",null)
 	return
 
+func start_game():
+	AuthMenu.get_node("Timer").start()
 
+############################################################################
+
+
+
+###FUNÇÕES DE ENVIO DE DADOS
 func _send_position(pos):
 	var data = StreamPeerBuffer.new()
 	data = ("1:"+str(pos.x)+"/"+str(pos.y)+".").to_utf8()
 	boar.put_data(data)
-	print("data sent")
 	pass
-	
+
+############################################################################
+
+###FUNÇÕES DE REQUISIÇÃO###
 func _request_map(index=null):
 	var data = StreamPeerBuffer.new()
 	if index==null:
-		data = ("2:0").to_utf8()
+		data = ("2:0.").to_utf8()
 		boar.put_data(data)
 	else:
 		data = ("2:1|"+str(index.x)+"/"+str(index.y)+".").to_utf8()
@@ -74,20 +88,31 @@ func test_ping():
 	boar.put_data(data)
 	pass
 
+func _disconnect():
+	var data = StreamPeerBuffer.new()
+	data = "9".to_utf8()
+	boar.put_data(data)
+	boar.disconnect_from_host()
+	pass # Replace with function body.
 
+############################################################################
+
+###FUNÇÕES DE RECEBIMENTO E PROCESSAMENTO DE RESPOSTAS###
 
 
 
 func _listen_server(_trash):
+	#Threading ouvindo streams do servidor, caso haja mais de 1 byte para ser coletado, 
+	#o recebe e envia para a função de parsing
 	var buffer = StreamPeerBuffer.new()
 	while true:
 		var i = boar.get_available_bytes()
-		if i==0:
+		if i<=0:
 			continue
-		print("recieved data")
+		print("recieved data "+str(i)+" bytes")
 		buffer = boar.get_string(i)
 		call_deferred("parse_data",buffer)
-		
+
 
 
 var downloading_map = false
@@ -96,6 +121,13 @@ var map_data
 var raw_queue = ""
 var queue = []
 func parse_data(raw):
+	#Recebe pacotes brutos, remove caracteres nulos e o organiza para execução
+	#Strings são enviadas para uma string maior temporaria, quando essa string
+	#acaba com ponto(.) ela é adicionada a queue de execução e enviada
+	#para execução
+	if len(raw) == 0:
+		return
+	#print(raw)
 	raw = raw.replace(" ","")
 	if raw[len(raw)-1] == ".":
 		raw_queue+=raw
@@ -107,23 +139,52 @@ func parse_data(raw):
 
 
 func _execute_instruction():
+	#Recebe uma instrução, retira caracteres de controle e baseado no indentificador
+	#executa o código especifico de cada protocolo
 	var instruction = queue[0].split(".")[0]
+	var protocol = instruction.split(":")
 	if(len(instruction)<100):
 		print("Executing =="+instruction)
-	var protocol = instruction.split(":")
-	if protocol[0] == "1":
-		#posição
+	
+	if protocol[0] == "0":
+		#login/registro
+		var auth_data = protocol[1].split("|")
+		var answer_code = auth_data[1]
+		if auth_data[0]=="0":
+			#login
+			if answer_code=="0":
+				AuthMenu.Message.text = ("Logged as "+Global.nick)
+				print("Logged as "+Global.nick)
+				call_deferred("start_game")
+			elif answer_code=="1" :
+				AuthMenu.Message.text =  ("Wrong password")
+				print("Wrong password")
+			elif answer_code=="2":
+				AuthMenu.Message.text = ("No user with this nick") 
+				print("No user with this nick") 
+		elif auth_data[0] == "1":
+			#registro
+			print("register answer")
+			if answer_code=="0":
+				AuthMenu.Message.text = ("Registered as "+Global.nick)
+				print("Registered as "+Global.nick)
+			elif answer_code=="1":
+				AuthMenu.Message.text = (Global.nick +" is not avaliable")
+				print(Global.nick +" is not avaliable")
+	elif protocol[0] == "1":
+		#Posição dos outros jogadores
 		var data = protocol[1].split("|")
 		var pos = data[1].split("/")
-		get_node("..")._update_player(data[0],pos)
-		queue.remove(0)
+		if world != null:
+			world._update_player(data[0],pos)
 	elif protocol[0]== "2":
+		#download de mapa
 		downloading_map = true
 		print("downloading map")
-		#mapa
 		var data = protocol[1].split("|")
 		var chunk_name = data[0]
 		var chunk_size = int(data[2]) 
+		Global.chunk_size = chunk_size
 		var chunk_index = data[1]#necessário converter a string para vetor2
 		var tiles_array = []
 		for i in range(3,3+chunk_size):
@@ -131,9 +192,8 @@ func _execute_instruction():
 			tiles_array.append(tile)
 		print("mapa size = "+str(len(tiles_array)))
 		world._gen_map(chunk_size,tiles_array)
-		queue.remove(0)
 	elif protocol[0]=="666":
-		#ping
+		#resposta de ping
 		print("/////")
 		print(protocol)
 		print(OS.get_system_time_msecs())
@@ -143,52 +203,12 @@ func _execute_instruction():
 		var el_time = now_time-send_time
 		print("ELAPSED TIME: "+ str(el_time)+"ms")
 		queue.remove(0)
-	elif protocol[0] == "0":
-		#login/registro
-		var auth_data = protocol[1].split("|")
-		var answer_code = auth_data[1]
-		if auth_data[0]=="0":
-			if answer_code=="0":
-				AuthMenu.Message.text = ("Logged as "+nick)
-				print("Logged as "+nick)
-				call_deferred("start_game")
-				queue.remove(0)
-			elif answer_code=="1" :
-				AuthMenu.Message.text =  ("Wrong password")
-				print("Wrong password")
-				queue.remove(0)
-				return
-			elif answer_code=="2":
-				AuthMenu.Message.text = ("No user with this nick") 
-				print("No user with this nick") 
-				queue.remove(0)
-				return
-			queue.remove(0)
-		elif auth_data[0] == "1":
-			print("register answer")
-			if answer_code=="0":
-				AuthMenu.Message.text = ("Registered as "+nick)
-				print("Registered as "+nick)
-			elif answer_code=="1":
-				AuthMenu.Message.text = (nick +" is not avaliable")
-				print(nick +" is not avaliable")
-			queue.remove(0)
 	else:
 		print('invalid package')
+	queue.remove(0)
 
 
 
-
-func start_game():
-	AuthMenu.get_node("Timer").start()
-
-func _disconnect():
-	print("this rund")
-	var data = StreamPeerBuffer.new()
-	data = "9".to_utf8()
-	boar.put_data(data)
-	boar.disconnect_from_host()
-	pass # Replace with function body.
 
 
 
