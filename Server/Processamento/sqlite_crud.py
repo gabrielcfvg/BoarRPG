@@ -120,4 +120,4 @@ def selecionar(**kwargs):
 #deletar(tabela="users", v1='nome', v2='gabriel')
 #atualizar(tabela='users', v1="num", v2=999, v3='nome', v4="gabriel")
 #inserir(tabela='users', valores=['gabriel', 1234])
-#print(selecionar(tabela="users", v1='num', v2='nome', v3='gabriel'))
+#print(selecionar(tabela="contas", v1='binário', v2='nome', v3='biel'))

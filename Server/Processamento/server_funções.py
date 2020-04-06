@@ -10,101 +10,8 @@ class Usuário:
     def criar(self, nome, posX, posY):
         
         self.nome = nome
-        self.localização = [posX, posY]
+        self.localização = f"{posX}/{posY}"
         self.chunck = '1/1'
-    
-    def alterar_localização(self, posX, posY):
-        self.localização[0] = posX
-        self.localização[1] = posY
-
-class Protocolos:
-
-    @staticmethod
-    def send_chunk(conexão, nome, pacote):
-        import socket
-        from pickle import loads
-        from sqlite_crud import selecionar
-        from base64 import b64decode
-
-        pacote = pacote.split(':')[1]
-        pacote = pacote.split(".")[0]
-
-        if (len(pacote.split('|')) == 1) and (pacote.split('|')[0] == '0'):
-            
-            obj = loads(b64decode(selecionar(tabela='contas', v1='binário', v2='nome', v3=nome)))
-            chunck = obj.chunck
-            
-            '''
-            chunck = loads(open(f"./chuncks/{chunck}.pkl", 'rb').read())
-            '''
-
-            tmp = selecionar(tabela='chuncks', v1='binário', v2='nome', v3=chunck)
-
-            if not tmp:
-
-                conexão.send(b"chunck nao existente")
-                return
-
-            chunck = loads(b64decode(tmp))
-
-            saida = f"2:{chunck.nome}|{chunck.pos}|{chunck.tamanho}"
-            for A in chunck.tiles:
-                for B in A:
-                    
-                    tipo = B["tipo"]
-                    sprite = B["sprite"]
-                    info = ''
-                    if len(B["informações"]) == 0:
-                        info = 'n'
-                    else:
-                        for C in B["informações"]:
-                            info += C+"|"
-                        info = info[:-1]
-
-                    saida += f"|{tipo}/{sprite}/{info}"
-
-            saida += '.'
-
-            conexão.send(bytes(saida, 'utf-8'))
-
-
-
-
-
-
-        elif (len(pacote.split('|')) > 1) and (pacote.split('|')[0] == '1'):
-
-            posX = pacote.split('|')[1].split("/")[0]
-            posY = pacote.split('|')[1].split("/")[1]
-
-            tmp = selecionar(tabela='chuncks', v1='binário', v2='nome', v3=f'{posX}/{posY}')
-
-            if not tmp:
-
-                conexão.send(b"chunck nao existente")
-                return
-
-            chunck = loads(b64decode(tmp))
-
-            saida = f"2:{chunck.nome}|{chunck.pos}|{chunck.tamanho}"
-            for A in chunck.tiles:
-                for B in A:
-                    
-                    tipo = B["tipo"]
-                    sprite = B["sprite"]
-                    info = ''
-                    if len(B["informações"]) == 0:
-                        info = 'n'
-                    else:
-                        for C in B["informações"]:
-                            info += C+"|"
-                        info = info[:-1]
-
-                    saida += f"|{tipo}/{sprite}/{info}"
-
-            saida += '.'
-
-            conexão.send(bytes(saida, 'utf-8'))
 
 
 def login(pacote):
@@ -162,7 +69,7 @@ def login(pacote):
 
             hash_senha = hashlib.sha256(bytes(senha, 'utf-8')).hexdigest()
             obj = Usuário()
-            obj.criar(_nome, 30, 30)
+            obj.criar(_nome, 5, 5)
             obj = b64encode(dumps(obj)).decode('utf-8')
 
             inserir(tabela='contas', valores=[_nome, hash_senha, obj])
