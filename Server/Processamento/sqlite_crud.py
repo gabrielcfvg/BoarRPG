@@ -1,7 +1,9 @@
 import sqlite3
-import os
+from os import getcwd
 
-arquivo = os.getcwd()+r'\database.db'
+arquivo = getcwd()+r'\database.db'
+del getcwd
+
 def sqlite(func):
 
 	def operação(**kwargs):
