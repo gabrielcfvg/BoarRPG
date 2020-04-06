@@ -4,6 +4,7 @@ var GreenTile = "res://Scenario/Tiles/GreenTile.tscn"
 var BlueTile = "res://Scenario/Tiles/BlueTile.tscn"
 var RedTile = "res://Scenario/Tiles/RedTile.tscn"
 
+
 var character = preload("res://Characters/Enemy.tscn")
 var players = []
 const CELL_SIZE = 64
@@ -61,7 +62,10 @@ func render_map(mapArray):
 			var mapTile = assets[str(mapArray[y][x])].instance()
 			add_child(mapTile)
 			mapTile.position = mapTile.texture.get_size()*Vector2(x,y)
-
+	
+	var player = preload("res://Characters/Player.tscn")
+	player.instance()
+	add_child(player)
 
 
 
@@ -83,6 +87,7 @@ func add_player(name,pos):
 	#np.modulate = Color(randi()%255)
 	var pos_index = Vector2(int(pos[0]),int(pos[1]))
 	np.global_position = pos_index*Vector2(CELL_SIZE,CELL_SIZE) + Vector2(CELL_SIZE/2,CELL_SIZE/2)
+
 
 
 func _on_Disco_pressed():

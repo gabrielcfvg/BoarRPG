@@ -1,10 +1,8 @@
 extends Sprite
 
 var offsetWorldPos
-var pos_index = Vector2(0,0)
 var map_size = 3600
 func _ready():
-	pos_index = Global.player_position
 	_update_position()
 	offsetWorldPos = get_node("..").global_position
 
@@ -19,20 +17,21 @@ func _physics_process(delta):
 	
 	#movimentação via WASD
 	if Input.is_action_just_pressed("ui_up"):
-		pos_index.y-=1
+		Global.player_position.y-=1
 		_update_position()
 	elif Input.is_action_just_pressed("ui_down"):
-		pos_index.y+=1
+		Global.player_position.y+=1
 		_update_position()
 	elif Input.is_action_just_pressed("ui_left"):
-		pos_index.x -=1
+		Global.player_position.x -=1
 		_update_position()
 	elif Input.is_action_just_pressed("ui_right"):
-		pos_index.x +=1
+		Global.player_position.x +=1
 		_update_position()
 
 
 func _update_position():
+	var pos_index = Global.player_position
 	#define a posição do jogador e envia para o servidor
 	#print(Con.boar.get_status())
 	var parent = get_node("..")

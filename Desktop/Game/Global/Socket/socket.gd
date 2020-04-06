@@ -106,13 +106,17 @@ func _listen_server(_trash):
 	#o recebe e envia para a função de parsing
 	var buffer = StreamPeerBuffer.new()
 	while true:
+		if(boar.get_status()!=2):
+			print(boar.get_status())
+			print("breaking listen")
+			break
 		var i = boar.get_available_bytes()
 		if i<=0:
 			continue
 		print("recieved data "+str(i)+" bytes")
 		buffer = boar.get_string(i)
 		call_deferred("parse_data",buffer)
-
+		print(buffer)
 
 
 var downloading_map = false
@@ -184,14 +188,17 @@ func _execute_instruction():
 		var data = protocol[1].split("|")
 		var chunk_name = data[0]
 		var chunk_size = int(data[2]) 
+		var player_pos = data[3].split("/")
+		print("Player spawning at :"+player_pos)
+		Global.player_position = Vector2(int(player_pos[0]),int(player_pos[1]))
 		Global.chunk_size = chunk_size
 		var chunk_index = data[1]#necessário converter a string para vetor2
 		var tiles_array = []
-		for i in range(3,3+chunk_size):
+		for i in range(4,4+chunk_size):
 			var tile = data[i].split("/")
 			tiles_array.append(tile)
 		print("mapa size = "+str(len(tiles_array)))
-		world._gen_map(chunk_size,tiles_array)
+		world._gen_map(chunk_size,tiles_array,player_pos)
 	elif protocol[0]=="666":
 		#resposta de ping
 		print("/////")
