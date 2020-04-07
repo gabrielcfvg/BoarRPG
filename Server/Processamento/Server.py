@@ -17,10 +17,11 @@ class Protocolos:
 
         nome = clients_ativos[chave][2]
         pacote = pacote.split(":")[1]
+        chunck = clients_ativos[chave][3].chunck
 
         for A in clients_ativos:
             
-            if clients_ativos[A][2] != nome:
+            if clients_ativos[A][2] != nome and clients_ativos[A][3].chunck == chunck:
                 
                 clients_ativos[A][0].send(bytes(f"1:{nome}|{pacote}.", 'utf-8'))
         
