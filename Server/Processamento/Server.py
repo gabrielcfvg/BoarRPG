@@ -5,9 +5,11 @@ from base64 import b64decode, b64encode
 from pickle import loads, dumps
 from traceback import print_exc
 
-#================================================================================
-#================================================================================
-#Funções e Classes
+##################################################################################################################
+#                                                                                                                #
+#                                             Funções e Classes                                                  #
+#                                                                                                                #
+##################################################################################################################
 
 
 class Protocolos:
@@ -15,17 +17,17 @@ class Protocolos:
     @staticmethod
     def enviar_movimentação(chave, pacote):
 
-        nome = clients_ativos[chave][2]
+        nome = clients_ativos[chave]['nome']
         pacote = pacote.split(":")[1]
-        chunck = clients_ativos[chave][3].chunck
+        chunck = clients_ativos[chave]['objeto'].chunck
 
         for A in clients_ativos:
             
-            if clients_ativos[A][2] != nome and clients_ativos[A][3].chunck == chunck:
+            if clients_ativos[A]['nome'] != nome and clients_ativos[A]['conexão'].chunck == chunck:
                 
-                clients_ativos[A][0].send(bytes(f"1:{nome}|{pacote}.", 'utf-8'))
+                clients_ativos[A]['conexão'].send(bytes(f"1:{nome}|{pacote}.", 'utf-8'))
         
-        clients_ativos[chave][3].localização = pacote
+        clients_ativos[chave]['objeto'].localização = pacote
 
     @staticmethod
     def send_chunk(chave, pacote):
@@ -34,8 +36,8 @@ class Protocolos:
         from sqlite_crud import selecionar
         
 
-        conexão = clients_ativos[chave][0]
-        nome = clients_ativos[chave][2]
+        conexão = clients_ativos[chave]['conexão']
+        nome = clients_ativos[chave]['nome']
 
         pacote = pacote.split(':')[1]
         pacote = pacote.split(".")[0]
@@ -54,7 +56,7 @@ class Protocolos:
 
             chunck = loads(b64decode(tmp))
 
-            saida = f"2:{chunck.nome}|{chunck.pos}|{chunck.tamanho}|{clients_ativos[chave][3].localização}"
+            saida = f"2:{chunck.nome}|{chunck.pos}|{chunck.tamanho}|{clients_ativos[chave]['objeto'].localização}"
             for A in chunck.tiles:
                 for B in A:
                     
@@ -72,7 +74,7 @@ class Protocolos:
 
             saida += '.'
             
-            clients_ativos[chave][3].chunck = chunck_name
+            clients_ativos[chave]['objeto'].chunck = chunck_name
             conexão.send(bytes(saida, 'utf-8'))
 
 
@@ -90,7 +92,7 @@ class Protocolos:
 
             chunck = loads(b64decode(tmp))
 
-            saida = f"2:{chunck.nome}|{chunck.pos}|{chunck.tamanho}|{clients_ativos[chave][3].localização}"
+            saida = f"2:{chunck.nome}|{chunck.pos}|{chunck.tamanho}|{clients_ativos[chave]['objeto'].localização}"
             for A in chunck.tiles:
                 for B in A:
                     
@@ -108,7 +110,7 @@ class Protocolos:
 
             saida += '.'
 
-            clients_ativos[chave][3].chunck = chunck_name
+            clients_ativos[chave]['objeto'].chunck = chunck_name
             conexão.send(bytes(saida, 'utf-8'))
 
 
@@ -137,7 +139,7 @@ class Funções:
             pacote = conexão.recv(2048).decode("utf-8")
 
             if len(pacote) == 0:
-                Funções.pacote_nulo(chave, clients_ativos[chave][1], None)
+                Funções.pacote_nulo(chave, clients_ativos[chave]['endereço'], None)
                 raise Exception
 
             print("pacote login:", pacote) 
@@ -146,11 +148,11 @@ class Funções:
 
             if _nome != None:
                 nome = _nome
-                clients_ativos[chave].append(nome)
+                clients_ativos[chave]['nome'] = nome
                 autenticado = True
 
                 obj = loads(b64decode(selecionar(tabela='contas', v1='binário', v2='nome', v3=nome)))
-                clients_ativos[chave].append(obj)
+                clients_ativos[chave]['objeto'] = obj
 
     @staticmethod
     def remover_client(chave):
@@ -159,8 +161,8 @@ class Funções:
 
         if len(clients_ativos[chave]) == 4:
 
-            obj = b64encode(dumps(clients_ativos[chave][3])).decode('utf-8')
-            nome = clients_ativos[chave][2]
+            obj = b64encode(dumps(clients_ativos[chave]['objeto'])).decode('utf-8')
+            nome = clients_ativos[chave]['nome']
 
             atualizar(tabela='contas', v1='binário', v2=obj, v3='nome', v4=nome)
 
@@ -184,7 +186,7 @@ def receber(chave, conexão, endereço):
 
         Funções.login(chave, conexão)
 
-        nome = clients_ativos[chave][2]
+        nome = clients_ativos[chave]['nome']
 
         
         while True:
@@ -221,10 +223,11 @@ def receber(chave, conexão, endereço):
 
 
 
-
-#================================================================================
-#================================================================================
-#Definição de variaveis e constantes
+##################################################################################################################
+#                                                                                                                #
+#                                    Declaração de variaveis e constantes                                        #
+#                                                                                                                #
+##################################################################################################################
 
 dicionario_protocolos = {'1': Protocolos.enviar_movimentação, '2': Protocolos.send_chunk}
 clients_ativos = {}
@@ -232,9 +235,11 @@ IP = '0.0.0.0'
 PORTA = 1234
 
 
-#================================================================================
-#================================================================================
-#Programa principal
+##################################################################################################################
+#                                                                                                                #
+#                                             Programa principal                                                 #
+#                                                                                                                #
+##################################################################################################################
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.bind((IP, PORTA))
@@ -244,8 +249,10 @@ while True:
 
     conexão, endereço = sock.accept()
     print("cliente conectado:", endereço)
+    
     chave = Funções.gerar_chave(endereço[0])
-    clients_ativos[chave] = [conexão, endereço]
+    clients_ativos[chave] = {'conexão': conexão, 'endereço': endereço}
+    
     Thread(target=receber, args=[chave, conexão, endereço], daemon=True).start()
 
 
