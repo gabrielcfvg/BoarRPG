@@ -24,7 +24,7 @@ func change_chunk(side):
 	get_tree().reload_current_scene()
 	
 
-func _gen_map(size,tiles):
+func _gen_map(size,tiles,name):
 	###gera um array bidimensional de dimensões size representando o mapa
 	var map = []
 	var ss = sqrt(size)
@@ -35,6 +35,7 @@ func _gen_map(size,tiles):
 			line.append(int(t))
 		map.append(line)
 	render_map(map)
+	$CanvasLayer/Region.text = name[0]+"["+name[1]+"]"
 
 
 
@@ -64,8 +65,8 @@ func render_map(mapArray):
 			mapTile.position = mapTile.texture.get_size()*Vector2(x,y)
 	
 	var player = preload("res://Characters/Player.tscn")
-	player.instance()
-	add_child(player)
+	var p = player.instance()
+	add_child(p)
 
 
 

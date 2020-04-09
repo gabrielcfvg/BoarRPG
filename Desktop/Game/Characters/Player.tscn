@@ -5,7 +5,7 @@
 [ext_resource path="res://Global/SubMenus/ActionMenu.tscn" type="PackedScene" id=3]
 
 [node name="Player" type="Sprite"]
-scale = Vector2( 3, 3 )
+modulate = Color( 0.658824, 0.607843, 0.0509804, 1 )
 z_index = 1
 texture = ExtResource( 1 )
 script = ExtResource( 2 )
@@ -16,3 +16,8 @@ visible = false
 [node name="Camera2D" type="Camera2D" parent="."]
 current = true
 smoothing_enabled = true
+
+[node name="walk_time" type="Timer" parent="."]
+wait_time = 0.3
+one_shot = true
+[connection signal="timeout" from="walk_time" to="." method="_on_walk_time_timeout"]

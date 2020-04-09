@@ -28,6 +28,26 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="Region" type="Label" parent="CanvasLayer"]
+margin_left = 185.629
+margin_top = 155.41
+margin_right = 225.629
+margin_bottom = 169.41
+rect_scale = Vector2( 3, 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label2" type="Label" parent="CanvasLayer"]
+margin_top = 155.41
+margin_right = 40.0
+margin_bottom = 169.41
+rect_scale = Vector2( 3, 3 )
+text = "Region:"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="In-Game Menu" parent="." instance=ExtResource( 3 )]
 
 [node name="Itens" parent="In-Game Menu" index="0"]

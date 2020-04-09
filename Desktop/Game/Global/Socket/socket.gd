@@ -1,8 +1,10 @@
 extends Node
 export var port:int = 1234
 var thread
+var thread2
 var world = null
 var boar = null
+var boarEar = null
 var AuthMenu
 
 
@@ -13,10 +15,16 @@ func _ready():
 ###FUNÇÕES DE CONEXÃO###
 
 func _connect_to_server(data):
+	#Função que inicia todos os sockets e conexões com o server, 
+	#permitindo o inicio do jogo
+	
+	#credenciais do usuário
 	var ip= data[0]
 	Global.nick = data[1]
 	var pas = data[2]
 	var code = data[3]
+	
+	#Conexão TCP com servidor do jogo
 	boar = StreamPeerTCP.new()
 	if boar.connect_to_host(ip,port) != 0:
 		print("Connection error")
@@ -32,6 +40,14 @@ func _connect_to_server(data):
 		return
 	AuthMenu.Message.text = ("Connected game to server")
 	print("Connected game to server")
+	
+	#Criação do socket UDP
+	boarEar = PacketPeerUDP.new()
+	if boarEar.listen(666):
+		AuthMenu.Message.Text = ("UDP listen error")
+		print("UDP listen error")
+		return
+	
 	if code == "0|":
 		login(Global.nick,pas)
 	elif code == "1|":
@@ -43,7 +59,9 @@ func login(nick,pas):
 	buffer = ("0:0|"+nick+"|"+pas+".").to_utf8()
 	boar.put_data(buffer)
 	thread = Thread.new()
-	thread.start(self, "_listen_server",null)
+	thread.start(self, "_listen_server_tcp",null)
+	thread2 = Thread.new()
+	thread2.start(self,"_listen_server_udp",null)
 	return
 
 func register(nick,pas):
@@ -51,7 +69,9 @@ func register(nick,pas):
 	buffer = ("0:1|"+nick+"|"+pas+".").to_utf8()
 	boar.put_data(buffer)
 	thread = Thread.new()
-	thread.start(self, "_listen_server",null)
+	thread.start(self, "_listen_server_tcp",null)
+	thread2 = Thread.new()
+	thread2.start(self,"_listen_server_udp",null)
 	return
 
 func start_game():
@@ -101,8 +121,8 @@ func _disconnect():
 
 
 
-func _listen_server(_trash):
-	#Threading ouvindo streams do servidor, caso haja mais de 1 byte para ser coletado, 
+func _listen_server_tcp(_trash):
+	#Thread ouvindo streams do servidor, caso haja mais de 1 byte para ser coletado, 
 	#o recebe e envia para a função de parsing
 	var buffer = StreamPeerBuffer.new()
 	while true:
@@ -110,21 +130,33 @@ func _listen_server(_trash):
 			print(boar.get_status())
 			print("breaking listen")
 			break
+			
 		var i = boar.get_available_bytes()
 		if i<=0:
 			continue
-		print("recieved data "+str(i)+" bytes")
+		print("recieved TCP data "+str(i)+" bytes")
 		buffer = boar.get_string(i)
-		call_deferred("parse_data",buffer)
-		print(buffer)
+		call_deferred("parse_data",buffer,true)
+
+func _listen_server_udp(_trash):
+	#Thread ouvindo pacotes sem resosta do servidor, caso haja mais de 1 byte
+	#para ser colatao, o recebe e envia para a função de parsing
+	var buffer = PacketPeerStream.new()
+	while true:
+		var i = boarEar.get_available_packet_count()
+		if i<=0:
+			continue
+		print("recieved UDP data" + str(i) + "bytes")
+		buffer = boarEar.get_packet()
+		call_deferred("parse_data",buffer.get_string_from_utf8(),false)
 
 
-var downloading_map = false
-var map_data
 
-var raw_queue = ""
+
+var raw_queue_udp = ""
+var raw_queue_tcp = ""
 var queue = []
-func parse_data(raw):
+func parse_data(raw,tcp):
 	#Recebe pacotes brutos, remove caracteres nulos e o organiza para execução
 	#Strings são enviadas para uma string maior temporaria, quando essa string
 	#acaba com ponto(.) ela é adicionada a queue de execução e enviada
@@ -133,13 +165,22 @@ func parse_data(raw):
 		return
 	#print(raw)
 	raw = raw.replace(" ","")
-	if raw[len(raw)-1] == ".":
-		raw_queue+=raw
-		queue.append(raw_queue)
-		raw_queue = ""
-		_execute_instruction()
+	if tcp:
+		if raw[len(raw)-1] == ".":
+			raw_queue_tcp+=raw
+			queue.append(raw_queue_tcp)
+			raw_queue_tcp = ""
+			_execute_instruction()
+		else:
+			raw_queue_tcp+=raw
 	else:
-		raw_queue+=raw
+		if raw[len(raw)-1] == ".":
+			raw_queue_udp+=raw
+			queue.append(raw_queue_udp)
+			raw_queue_udp = ""
+			_execute_instruction()
+		else:
+			raw_queue_udp+=raw
 
 
 func _execute_instruction():
@@ -183,13 +224,12 @@ func _execute_instruction():
 			world._update_player(data[0],pos)
 	elif protocol[0]== "2":
 		#download de mapa
-		downloading_map = true
 		print("downloading map")
 		var data = protocol[1].split("|")
 		var chunk_name = data[0]
 		var chunk_size = int(data[2]) 
 		var player_pos = data[3].split("/")
-		print("Player spawning at :"+player_pos)
+		print(player_pos)
 		Global.player_position = Vector2(int(player_pos[0]),int(player_pos[1]))
 		Global.chunk_size = chunk_size
 		var chunk_index = data[1]#necessário converter a string para vetor2
@@ -198,7 +238,7 @@ func _execute_instruction():
 			var tile = data[i].split("/")
 			tiles_array.append(tile)
 		print("mapa size = "+str(len(tiles_array)))
-		world._gen_map(chunk_size,tiles_array,player_pos)
+		world._gen_map(chunk_size,tiles_array,[chunk_name,chunk_index])
 	elif protocol[0]=="666":
 		#resposta de ping
 		print("/////")

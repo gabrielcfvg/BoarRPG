@@ -7,7 +7,7 @@ var PlayerIndex
 func _on_Move_pressed():
 	print("moved")
 	print(targetIndex)
-	get_node("..").pos_index = targetIndex
+	Global.player_position = targetIndex
 	get_node("..")._update_position()
 	visible = false
 	
