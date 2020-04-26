@@ -12,9 +12,7 @@ func _ready():
 		save.close()
 	if save.file_exists("user://credentials.dat"):
 		save.open_encrypted_with_pass("user://credentials.dat",save.READ,OS.get_unique_id())
-		print(save)
 		var creds = save.get_as_text().split("|")
-		print(creds)
 		if len(creds)<2:
 			return
 		$VBoxContainer/Nick/NickInput.text = creds[0]

@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/32.png-ad15516435a5c8bc409809c78518ca11.stex"
+path="res://.import/Blue.png-49ef24bf33651702b5aeb90bcc995e25.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Scenario/Tiles/32.png"
-dest_files=[ "res://.import/32.png-ad15516435a5c8bc409809c78518ca11.stex" ]
+source_file="res://Scenario/Tiles/Blue.png"
+dest_files=[ "res://.import/Blue.png-49ef24bf33651702b5aeb90bcc995e25.stex" ]
 
 [params]
 
@@ -20,7 +20,7 @@ compress/hdr_mode=0
 compress/bptc_ldr=0
 compress/normal_map=0
 flags/repeat=0
-flags/filter=true
+flags/filter=false
 flags/mipmaps=false
 flags/anisotropic=false
 flags/srgb=2
@@ -30,5 +30,5 @@ process/HDR_as_SRGB=false
 process/invert_color=false
 stream=false
 size_limit=0
-detect_3d=true
+detect_3d=false
 svg/scale=1.0

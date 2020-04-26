@@ -20,53 +20,16 @@ func _ready():
 		Con._request_map(Global.chunk_position)
 
 func change_chunk(side):
+	#modifica o index do chunk atual e recarrega a cena
 	Global.chunk_position+= side
 	get_tree().reload_current_scene()
 	
 
-func _gen_map(size,tiles,name):
-	###gera um array bidimensional de dimensões size representando o mapa
-	var map = []
-	var ss = sqrt(size)
-	for x in range(ss):
-		var line = []
-		for y in range(ss):
-			var t = tiles[(x*ss)+y][1]
-			line.append(int(t))
-		map.append(line)
-	render_map(map)
-	$CanvasLayer/Region.text = name[0]+"["+name[1]+"]"
+func _start_loading(map):
+	$MapRender._gen_map(map)
 
 
 
-var assets = {}
-func render_map(mapArray):
-	var load_list = []
-	for x in len(mapArray):
-		for y in len(mapArray[0]):
-			if not mapArray[x][y] in load_list:
-				load_list.append(mapArray[x][y])
-				match mapArray[x][y]:
-					1:
-						assets["1"]=preload("res://Scenario/Tiles/WhiteTile.tscn")
-					2:
-						assets["2"] = preload("res://Scenario/Tiles/GreenTile.tscn")
-					3:
-						assets["3"] = preload("res://Scenario/Tiles/BlueTile.tscn")
-					4:
-						assets["4"] = preload("res://Scenario/Tiles/RedTile.tscn")
-	
-	
-	
-	for x in range(len(mapArray)):
-		for y in range(len(mapArray[0])):
-			var mapTile = assets[str(mapArray[y][x])].instance()
-			add_child(mapTile)
-			mapTile.position = mapTile.texture.get_size()*Vector2(x,y)
-	
-	var player = preload("res://Characters/Player.tscn")
-	var p = player.instance()
-	add_child(p)
 
 
 

@@ -29,8 +29,6 @@ func _physics_process(delta):
 		elif Input.is_action_pressed("ui_right"):
 			Global.player_position.x +=1
 			_update_position()
-		can_walk = false
-		$walk_time.start()
 
 var can_walk:bool = true
 func _on_walk_time_timeout():
@@ -38,6 +36,9 @@ func _on_walk_time_timeout():
 	pass # Replace with function body.
 
 func _update_position():
+	#bloqueia a movimentação pelo próximo segundo
+	can_walk = false
+	$walk_time.start()
 	var pos_index = Global.player_position
 	#define a posição do jogador e envia para o servidor
 	#print(Con.boar.get_status())

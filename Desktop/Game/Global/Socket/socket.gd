@@ -229,7 +229,6 @@ func _execute_instruction():
 		var chunk_name = data[0]
 		var chunk_size = int(data[2]) 
 		var player_pos = data[3].split("/")
-		print(player_pos)
 		Global.player_position = Vector2(int(player_pos[0]),int(player_pos[1]))
 		Global.chunk_size = chunk_size
 		var chunk_index = data[1]#necessário converter a string para vetor2
@@ -238,7 +237,7 @@ func _execute_instruction():
 			var tile = data[i].split("/")
 			tiles_array.append(tile)
 		print("mapa size = "+str(len(tiles_array)))
-		world._gen_map(chunk_size,tiles_array,[chunk_name,chunk_index])
+		world._start_loading([chunk_size,tiles_array,[chunk_name,chunk_index]])
 	elif protocol[0]=="666":
 		#resposta de ping
 		print("/////")

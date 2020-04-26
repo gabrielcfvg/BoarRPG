@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://Scenario/World Map.gd" type="Script" id=1]
+[ext_resource path="res://Scenario/Render/MapRender.gd" type="Script" id=2]
 [ext_resource path="res://Global/SubMenus/In-Game/In-Game Menu.tscn" type="PackedScene" id=3]
 
 [node name="World Map" type="Node2D"]
@@ -48,10 +49,56 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="WIP" type="ColorRect" parent="CanvasLayer"]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -486.5
+margin_top = -270.0
+margin_right = 486.5
+margin_bottom = 270.0
+color = Color( 0.0901961, 0.145098, 0.109804, 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/WIP"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -323.5
+margin_top = -73.3143
+margin_right = -173.5
+margin_bottom = -33.3143
+rect_scale = Vector2( 5, 5 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="CanvasLayer/WIP/VBoxContainer"]
+margin_right = 150.0
+margin_bottom = 14.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Downloading Map"
+
+[node name="ProgressBar" type="ProgressBar" parent="CanvasLayer/WIP/VBoxContainer"]
+margin_top = 18.0
+margin_right = 150.0
+margin_bottom = 32.0
+grow_horizontal = 2
+rect_min_size = Vector2( 150, 0 )
+
 [node name="In-Game Menu" parent="." instance=ExtResource( 3 )]
 
 [node name="Itens" parent="In-Game Menu" index="0"]
 visible = false
+
+[node name="MapRender" type="Node" parent="."]
+script = ExtResource( 2 )
 [connection signal="pressed" from="CanvasLayer/Disco" to="." method="_on_Disco_pressed"]
 [connection signal="pressed" from="CanvasLayer/Ping" to="." method="_on_Ping_pressed"]
 
